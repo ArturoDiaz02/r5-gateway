@@ -1,0 +1,5 @@
+gateway:
+  status-checks: 2s,4s,6s,8s,10s
+  retry:
+    delay: 2s
+    internal-error-delay: 2s

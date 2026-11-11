@@ -1,0 +1,29 @@
+# Compilacion de Maven
+target/
+
+# Maven wrapper: el jar se descarga solo al ejecutar mvnw
+**/.mvn/wrapper/maven-wrapper.jar
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+*.code-workspace
+.classpath
+.project
+.settings/
+
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Variables y secretos locales
+.env
+.env.*
+!.env.example
+
+# Configuracion local de herramientas
+.claude/
+
+# Logs
+*.log

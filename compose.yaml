@@ -1,0 +1,71 @@
+name: soat-local
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: soat
+      POSTGRES_USER: soat
+      POSTGRES_PASSWORD: soat
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "soat", "-d", "soat"]
+      interval: 3s
+      retries: 20
+
+  rabbitmq:
+    build: local/rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: soat
+      RABBITMQ_DEFAULT_PASS: soat
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 3s
+      retries: 30
+
+  rabbitmq-init:
+    image: curlimages/curl:8.11.1
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+    volumes:
+      - ./local/rabbitmq/definitions.json:/definitions.json:ro
+    command: ["-sf", "--retry", "15", "--retry-all-errors", "--retry-delay", "2",
+              "-u", "soat:soat", "-H", "content-type: application/json",
+              "-X", "POST", "--data", "@/definitions.json", "http://rabbitmq:15672/api/definitions"]
+    restart: "no"
+
+  simulator:
+    build: simulador-proveedor
+    environment:
+      PORT: "8090"
+      WEBHOOK_URL: http://gateway:8080/webhooks/pagos
+      HMAC_SECRET: ${HMAC_SECRET:-secreto-local-v1}
+      WEBHOOK_DELAY_MS: "2000"
+      SLOW_DELAY_MS: "8000"
+    ports:
+      - "8090:8090"
+
+  gateway:
+    build: gateway
+    deploy:
+      replicas: 2
+    depends_on:
+      postgres:
+        condition: service_healthy
+      rabbitmq-init:
+        condition: service_completed_successfully
+      simulator:
+        condition: service_started
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/soat
+      RABBIT_HOST: rabbitmq
+      PROVIDER_URL: http://simulator:8090
+      HMAC_CURRENT: ${HMAC_SECRET:-secreto-local-v1}
+      SPRING_PROFILES_ACTIVE: ${PROFILE:-local-fast}
+    ports:
+      - "8081-8082:8080"

@@ -1,0 +1,22 @@
+{
+  "exchanges": [
+    {"name": "emission", "vhost": "/", "type": "direct", "durable": true, "auto_delete": false, "internal": false, "arguments": {}},
+    {"name": "emission.delayed", "vhost": "/", "type": "x-delayed-message", "durable": true, "auto_delete": false, "internal": false, "arguments": {"x-delayed-type": "direct"}}
+  ],
+  "queues": [
+    {"name": "emission.requests", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}},
+    {"name": "emission.requests.dlq", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}},
+    {"name": "emission.status-checks", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}},
+    {"name": "emission.expirations", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}},
+    {"name": "emission.results", "vhost": "/", "durable": true, "auto_delete": false, "arguments": {}}
+  ],
+  "bindings": [
+    {"source": "emission", "vhost": "/", "destination": "emission.requests", "destination_type": "queue", "routing_key": "requests", "arguments": {}},
+    {"source": "emission", "vhost": "/", "destination": "emission.requests.dlq", "destination_type": "queue", "routing_key": "requests.dlq", "arguments": {}},
+    {"source": "emission", "vhost": "/", "destination": "emission.results", "destination_type": "queue", "routing_key": "results", "arguments": {}},
+    {"source": "emission.delayed", "vhost": "/", "destination": "emission.requests", "destination_type": "queue", "routing_key": "requests", "arguments": {}},
+    {"source": "emission.delayed", "vhost": "/", "destination": "emission.requests.dlq", "destination_type": "queue", "routing_key": "requests.dlq", "arguments": {}},
+    {"source": "emission.delayed", "vhost": "/", "destination": "emission.status-checks", "destination_type": "queue", "routing_key": "status-checks", "arguments": {}},
+    {"source": "emission.delayed", "vhost": "/", "destination": "emission.expirations", "destination_type": "queue", "routing_key": "expirations", "arguments": {}}
+  ]
+}

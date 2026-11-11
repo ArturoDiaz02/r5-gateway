@@ -1,0 +1,49 @@
+spring:
+  application:
+    name: soat-gateway
+  threads:
+    virtual:
+      enabled: true
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/soat}
+    username: ${DB_USER:soat}
+    password: ${DB_PASSWORD:soat}
+    hikari:
+      maximum-pool-size: 10
+  rabbitmq:
+    host: ${RABBIT_HOST:localhost}
+    port: ${RABBIT_PORT:5672}
+    username: ${RABBIT_USER:soat}
+    password: ${RABBIT_PASSWORD:soat}
+    publisher-confirm-type: simple
+  lifecycle:
+    timeout-per-shutdown-phase: 25s
+
+server:
+  port: ${PORT:8080}
+  shutdown: graceful
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+
+gateway:
+  provider:
+    url: ${PROVIDER_URL:http://localhost:8090}
+    timeout: 10s
+  hmac:
+    current: ${HMAC_CURRENT:secreto-local-v1}
+    previous: ${HMAC_PREVIOUS:}
+    window: 5m
+  status-checks: 5s,1m,10m,20m,30m
+  retry:
+    max-attempts: 5
+    delay: 10s
+    internal-error-delay: 10s
+  consumers:
+    requests: 20
+    status-checks: 10
+    expirations: 5
+    dead-letter: 1
